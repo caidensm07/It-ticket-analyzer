@@ -55,6 +55,27 @@ def categorize_ticket(subject, description):
             if keyword in text:
                 return category
     return "Other"
+def get_new_ticket():
+    print("\n--- New Ticket Intake ---")
+    subject = input("Subject: ").strip()
+    description = input("Description: ").strip()
+
+    priority = input("Priority (High/Medium/Low): ").strip().title()
+    if priority not in ["High", "Medium", "Low"]:
+        priority = "Medium"  # default
+
+    status = input("Status (Open/Closed): ").strip().title()
+    if status == "Close":
+        status = "Closed"
+    if status not in ["Open", "Closed"]:
+        status = "Open"  # default
+
+    return {
+        "subject": subject if subject else "No subject",
+        "description": description if description else "No description",
+        "priority": priority,
+        "status": status
+    }
 
 def main():
     if not Path(INPUT_CSV).exists():
