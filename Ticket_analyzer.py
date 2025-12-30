@@ -17,9 +17,9 @@ CATEGORY_RULES = {
         "phishing", "malware", "virus", "spam", "security", "suspicious", "hack"
     ],
     "VPN": [
-        "vpn", "remote access", "cannot connect", "connection error", "timeout" 
+        "vpn", "remote access", "cannot connect", "connection error", "timeout"
     ],
-    "Device Steup": [
+    "Device Setup": [
         "new computer", "new device", "setup", "workstation", "configure"
     ],
     "Network/Connectivity": [
@@ -65,39 +65,76 @@ def main():
     priority_counts = Counter()
     status_counts = Counter()
 
+    # Lists to organize tickets
+    open_tickets = []
+    closed_tickets = []
+
+    # ---------- READ CSV ----------
     with open(INPUT_CSV, newline="", encoding="utf-8") as f:
         reader = csv.DictReader(f)
         for row in reader:
+            # Categorize ticket
             category = categorize_ticket(row.get("subject"), row.get("description"))
             row["category"] = category
 
+            # Normalize status
+            status = (row.get("status") or "Unknown").strip().title()
+            if status == "Close":
+                status = "Closed"
+            row["status"] = status
+
+            # Store ticket
             tickets.append(row)
+
+            # Count values
             category_counts[category] += 1
             priority_counts[row.get("priority", "Unknown")] += 1
-            status_counts[row.get("status", "Unknown")] += 1
+            status_counts[status] += 1
 
-    # Write cleaned CSV
+            # Organize by status
+            if status == "Open":
+                open_tickets.append(row)
+            elif status == "Closed":
+                closed_tickets.append(row)
+
+    # ---------- WRITE CLEANED CSV ----------
     with open(OUTPUT_CLEANED, "w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=tickets[0].keys())
         writer.writeheader()
         writer.writerows(tickets)
 
-    # Write summary report
+    # ---------- WRITE SUMMARY ----------
     with open(OUTPUT_SUMMARY, "w", encoding="utf-8") as f:
         f.write("IT Ticket Analyzer Summary\n\n")
         f.write(f"Total tickets: {len(tickets)}\n\n")
 
         f.write("Tickets by Category:\n")
-        for category, count in category_counts.items():
+        for category, count in category_counts.most_common():
             f.write(f"- {category}: {count}\n")
 
         f.write("\nTickets by Priority:\n")
-        for priority, count in priority_counts.items():
+        for priority, count in priority_counts.most_common():
             f.write(f"- {priority}: {count}\n")
 
         f.write("\nTickets by Status:\n")
-        for status, count in status_counts.items():
+        for status, count in status_counts.most_common():
             f.write(f"- {status}: {count}\n")
+
+        f.write("\nOpen Tickets:\n")
+        for t in open_tickets:
+            f.write(
+                f"- #{t.get('id')} — {t.get('subject')} | "
+                f"Priority: {t.get('priority')} | Status: {t.get('status')} | "
+                f"Category: {t.get('category')}\n"
+            )
+
+        f.write("\nClosed Tickets:\n")
+        for t in closed_tickets:
+            f.write(
+                f"- #{t.get('id')} — {t.get('subject')} | "
+                f"Priority: {t.get('priority')} | Status: {t.get('status')} | "
+                f"Category: {t.get('category')}\n"
+            )
 
     print("Analysis complete.")
     print("Generated files:")
