@@ -40,6 +40,7 @@ CATEGORY_RULES = {
     ],
 }
 
+# ---------- HELPERS ----------
 def normalize_text(text):
     if not text:
         return ""
@@ -49,26 +50,28 @@ def normalize_text(text):
 
 def categorize_ticket(subject, description):
     text = normalize_text(subject) + " " + normalize_text(description)
-
     for category, keywords in CATEGORY_RULES.items():
         for keyword in keywords:
             if keyword in text:
                 return category
     return "Other"
+
+def normalize_priority(p):
+    p = (p or "").strip().title()
+    return p if p in ["High", "Medium", "Low"] else "Medium"
+
+def normalize_status(s):
+    s = (s or "").strip().title()
+    if s == "Close":
+        s = "Closed"
+    return s if s in ["Open", "Closed"] else "Open"
+
 def get_new_ticket():
     print("\n--- New Ticket Intake ---")
     subject = input("Subject: ").strip()
     description = input("Description: ").strip()
-
-    priority = input("Priority (High/Medium/Low): ").strip().title()
-    if priority not in ["High", "Medium", "Low"]:
-        priority = "Medium"  # default
-
-    status = input("Status (Open/Closed): ").strip().title()
-    if status == "Close":
-        status = "Closed"
-    if status not in ["Open", "Closed"]:
-        status = "Open"  # default
+    priority = normalize_priority(input("Priority (High/Medium/Low): "))
+    status = normalize_status(input("Status (Open/Closed): "))
 
     return {
         "subject": subject if subject else "No subject",
@@ -76,31 +79,28 @@ def get_new_ticket():
         "priority": priority,
         "status": status
     }
+
 def append_ticket_to_csv(ticket):
     file_exists = Path(INPUT_CSV).exists()
-
-    # Read existing IDs to choose the next ID (so you don't accidentally duplicate)
     next_id = 1
+
     if file_exists:
         with open(INPUT_CSV, newline="", encoding="utf-8") as f:
             reader = csv.DictReader(f)
             ids = []
             for row in reader:
                 try:
-                    ids.append(int(row.get("id", 0)))
-                except ValueError:
+                    ids.append(int(row["id"]))
+                except:
                     pass
             if ids:
                 next_id = max(ids) + 1
-
-    # If the CSV doesn't exist yet, create it with headers
-    write_header = not file_exists
 
     with open(INPUT_CSV, "a", newline="", encoding="utf-8") as f:
         fieldnames = ["id", "subject", "description", "priority", "status"]
         writer = csv.DictWriter(f, fieldnames=fieldnames)
 
-        if write_header:
+        if not file_exists:
             writer.writeheader()
 
         writer.writerow({
@@ -110,48 +110,45 @@ def append_ticket_to_csv(ticket):
             "priority": ticket["priority"],
             "status": ticket["status"]
         })
+
+# ---------- MAIN ----------
 def main():
     add = input("Add a new ticket? (y/n): ").strip().lower()
     if add == "y":
-        new_ticket = get_new_ticket()
-        append_ticket_to_csv(new_ticket)
-        print("Ticket saved to tickets.csv ✅\n")
+        ticket = get_new_ticket()
+        append_ticket_to_csv(ticket)
+        print("Ticket saved.\n")
 
     tickets = []
     category_counts = Counter()
     priority_counts = Counter()
     status_counts = Counter()
-
-    # Lists to organize tickets
     open_tickets = []
     closed_tickets = []
 
-    # ---------- READ CSV ----------
+    if not Path(INPUT_CSV).exists():
+        print("No tickets found.")
+        return
+
     with open(INPUT_CSV, newline="", encoding="utf-8") as f:
         reader = csv.DictReader(f)
         for row in reader:
-            # Categorize ticket
             category = categorize_ticket(row.get("subject"), row.get("description"))
+            status = normalize_status(row.get("status"))
+            priority = normalize_priority(row.get("priority"))
+
             row["category"] = category
-
-            # Normalize status
-            status = (row.get("status") or "Unknown").strip().title()
-            if status == "Close":
-                status = "Closed"
             row["status"] = status
+            row["priority"] = priority
 
-            # Store ticket
             tickets.append(row)
-
-            # Count values
             category_counts[category] += 1
-            priority_counts[row.get("priority", "Unknown")] += 1
+            priority_counts[priority] += 1
             status_counts[status] += 1
 
-            # Organize by status
             if status == "Open":
                 open_tickets.append(row)
-            elif status == "Closed":
+            else:
                 closed_tickets.append(row)
 
     # ---------- WRITE CLEANED CSV ----------
@@ -166,37 +163,27 @@ def main():
         f.write(f"Total tickets: {len(tickets)}\n\n")
 
         f.write("Tickets by Category:\n")
-        for category, count in category_counts.most_common():
-            f.write(f"- {category}: {count}\n")
+        for c, n in category_counts.most_common():
+            f.write(f"- {c}: {n}\n")
 
         f.write("\nTickets by Priority:\n")
-        for priority, count in priority_counts.most_common():
-            f.write(f"- {priority}: {count}\n")
+        for p, n in priority_counts.most_common():
+            f.write(f"- {p}: {n}\n")
 
         f.write("\nTickets by Status:\n")
-        for status, count in status_counts.most_common():
-            f.write(f"- {status}: {count}\n")
+        for s, n in status_counts.most_common():
+            f.write(f"- {s}: {n}\n")
 
         f.write("\nOpen Tickets:\n")
         for t in open_tickets:
-            f.write(
-                f"- #{t.get('id')} — {t.get('subject')} | "
-                f"Priority: {t.get('priority')} | Status: {t.get('status')} | "
-                f"Category: {t.get('category')}\n"
-            )
+            f.write(f"- #{t['id']} — {t['subject']} | {t['priority']} | {t['category']}\n")
 
         f.write("\nClosed Tickets:\n")
         for t in closed_tickets:
-            f.write(
-                f"- #{t.get('id')} — {t.get('subject')} | "
-                f"Priority: {t.get('priority')} | Status: {t.get('status')} | "
-                f"Category: {t.get('category')}\n"
-            )
+            f.write(f"- #{t['id']} — {t['subject']} | {t['priority']} | {t['category']}\n")
 
     print("Analysis complete.")
-    print("Generated files:")
-    print("- tickets_with_category.csv")
-    print("- summary.txt")
+    print("Generated summary.txt and tickets_with_category.csv")
 
 if __name__ == "__main__":
     main()
