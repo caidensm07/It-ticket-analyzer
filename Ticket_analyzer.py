@@ -17,7 +17,7 @@ CATEGORY_RULES = {
         "phishing", "malware", "virus", "spam", "security", "suspicious", "hack"
     ],
     "VPN": [
-        "vpn", "remote access", "cannot connect, "connection error", "timotut"
+        "vpn", "remote access", "cannot connect", "connection error", "timeout" 
     ],
     "Device Steup": [
         "new computer", "new device", "setup", "workstation", "configure"
