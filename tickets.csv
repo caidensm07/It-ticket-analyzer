@@ -2,8 +2,8 @@ id,subject,description,priority,status
 1,Can't login,Invalid password error,High,Closed
 2,VPN not connecting,Remote access times out when connecting,High,Open
 3,New laptop setup,Need help setting up a new workstation,Medium,Open
-5,WiFi drops,Disconnects every 10 minutes,Medium,Open
-6,Laptop slow,System lag and freezing,Medium,Open
-7,Spam email,Multiple suspicious emails reported as spam,Low,Closed
+4,WiFi drops,Disconnects every 10 minutes,Medium,Open
+5,Laptop slow,System lag and freezing,Medium,Open
+6,Spam email,Multiple suspicious emails reported as spam,Low,Closed
 7,Printer offline,Printer not responding,Low,Closed
 8,Install Zoom,Need Zoom installed,Low,Closed
