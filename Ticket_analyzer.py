@@ -16,6 +16,9 @@ CATEGORY_RULES = {
     "Security": [
         "phishing", "malware", "virus", "spam", "security", "suspicious", "hack"
     ],
+    "Device Steup": [
+        "new computer", "new device", "setup", "workstation", "configure"
+    ],
     "Network/Connectivity": [
         "wifi", "wi-fi", "internet", "ethernet", "network", "disconnect", "dropped"
     ],
