@@ -13,6 +13,9 @@ CATEGORY_RULES = {
     "Login/Account": [
         "login", "log in", "password", "reset", "locked", "account", "invalid password"
     ],
+    "Security": [
+        "phishing", "malware", "virus", "spam", "security", "suspicious", "hack"
+    ],
     "Network/Connectivity": [
         "wifi", "wi-fi", "internet", "ethernet", "network", "disconnect", "dropped"
     ],
