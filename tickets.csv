@@ -1,0 +1,6 @@
+id,subject,description,priority,status
+1,Can't login,Invalid password error,High,Closed
+2,WiFi drops,Disconnects every 10 minutes,Medium,Open
+3,Laptop slow,System lag and freezing,Medium,Open
+4,Printer offline,Printer not responding,Low,Closed
+5,Install Zoom,Need Zoom installed,Low,Closed
