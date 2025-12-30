@@ -76,10 +76,46 @@ def get_new_ticket():
         "priority": priority,
         "status": status
     }
+def append_ticket_to_csv(ticket):
+    file_exists = Path(INPUT_CSV).exists()
 
+    # Read existing IDs to choose the next ID (so you don't accidentally duplicate)
+    next_id = 1
+    if file_exists:
+        with open(INPUT_CSV, newline="", encoding="utf-8") as f:
+            reader = csv.DictReader(f)
+            ids = []
+            for row in reader:
+                try:
+                    ids.append(int(row.get("id", 0)))
+                except ValueError:
+                    pass
+            if ids:
+                next_id = max(ids) + 1
+
+    # If the CSV doesn't exist yet, create it with headers
+    write_header = not file_exists
+
+    with open(INPUT_CSV, "a", newline="", encoding="utf-8") as f:
+        fieldnames = ["id", "subject", "description", "priority", "status"]
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
+
+        if write_header:
+            writer.writeheader()
+
+        writer.writerow({
+            "id": next_id,
+            "subject": ticket["subject"],
+            "description": ticket["description"],
+            "priority": ticket["priority"],
+            "status": ticket["status"]
+        })
 def main():
-    if not Path(INPUT_CSV).exists():
-        raise FileNotFoundError("tickets.csv not found in project folder")
+    add = input("Add a new ticket? (y/n): ").strip().lower()
+    if add == "y":
+        new_ticket = get_new_ticket()
+        append_ticket_to_csv(new_ticket)
+        print("Ticket saved to tickets.csv ✅\n")
 
     tickets = []
     category_counts = Counter()
