@@ -36,9 +36,13 @@ The example below shows a run where a user chooses to add a new ticket.
 **Input:**
 
 Add a new ticket? (y/n): y
+
 Subject: VPN disconnecting
+
 Description: VPN drops every 5 minutes
+
 Priority (High/Medium/Low): High
+
 Status (Open/Closed): Open
 
 **Outputs generated:**
